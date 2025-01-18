@@ -27,8 +27,10 @@ export_membername = []
 export_email = []
 export_phone = []
 export_zip = []
+export_close = []
+export_about = []
 
-main_url = 'https://www.homes.com/reading-ma/sold/'
+main_url = 'https://www.homes.com/reading-ma/'
 
 driver = webdriver.Chrome()
 
@@ -38,7 +40,7 @@ input('Enter if ready : ')
 
 url_lis = [ x.find_element(By.CSS_SELECTOR,'a').get_attribute('href') for x in driver.find_elements(By.CSS_SELECTOR,'li.placard-container')]
 
-for i in url_lis[:20]:
+for i in url_lis[:10]:
 
     url = i
     driver.get(url)
@@ -98,6 +100,9 @@ for i in url_lis[:20]:
     
     try:
         y = json.loads(agent_src)
+
+        agent_url = y['url']
+
         print(y)
         member = y['memberOf']
         
@@ -130,21 +135,40 @@ for i in url_lis[:20]:
         email = '-'
         agent_name = '-'
 
+    
+    driver.get(agent_url)
+
+    try:
+        close = [ g.text for g in driver.find_elements(By.CSS_SELECTOR,'.stat-item')][0]
+    except:
+        close = '-'
+
+    try:
+        about = driver.find_element(By.CSS_SELECTOR,'article.adp-bio-container').text 
+
+    except:
+        about = '-'
+
     print('Name : ',name)
     print('Phone : ',phone)
     print('Email : ',email)
     print('Agent Name : ',agent_name)
-    
+    print('Close : ',close)
+    print('About : ',about)
+
+
     export_membername.append(name)
     export_agentname.append(agent_name)
     export_phone.append(phone)
     export_email.append(email)
+    export_close.append(close)
+    export_about.append(about)
 
 if __name__ == '__main__': 
 
     df = pd.DataFrame()
     df['Property Title'] = export_propname 
-    df['Url'] = url_lis[:20]
+    df['Url'] = url_lis[:10]
     df['Image'] = export_image
     df['Price'] = export_price
     df['Sell Date'] = export_sell_date
@@ -154,7 +178,9 @@ if __name__ == '__main__':
     df['Seller Name'] =  export_membername
     df['Email'] = export_email 
     df['Phone'] = export_phone 
+    df['About'] = export_about 
+    df['Close'] = export_close
 
-    df.to_excel('testload.xlsx')
+    df.to_excel('testloadsell.xlsx')
 
     print('Finish ...')
