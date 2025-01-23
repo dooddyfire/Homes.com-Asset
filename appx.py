@@ -38,6 +38,10 @@ zipcode_lis = []
 agency_name_lis = []
 year_lis = []
 url_lis = []
+buyer_lis = []
+seller_lis = []
+broker_lis = []
+sold_lis  = []
 
 main_url = 'https://www.homes.com/reading-ma/'
 
@@ -82,8 +86,8 @@ for i in url_lis:
 
     lis_script = [ x.get_attribute('innerHTML') for x in driver.find_elements(By.CSS_SELECTOR,'script[type="application/ld+json"]')]
 
-    prop_src = lis_script[0]
-    agent_src = lis_script[1]
+    #prop_src = lis_script[0]
+    #agent_src = lis_script[1]
 
     try: 
         total_view = driver.find_element(By.CSS_SELECTOR,'div.property-info-total-views').text.replace('Total Views','')
@@ -132,6 +136,13 @@ for i in url_lis:
     print(price)
     export_price.append(price)
 
+    try: 
+        sold = driver.find_element(By.CSS_SELECTOR,'span.property-info-status-pill').text 
+    except:
+        sold = '-'
+    print('Sold Date : ',sold)
+    sold_lis.append(sold)
+
     try:
         sell_date = driver.find_element(By.CSS_SELECTOR,'div.property-info-status-pill-container').text 
     except:
@@ -140,6 +151,7 @@ for i in url_lis:
     export_sell_date.append(sell_date)
 
     try:
+        prop_src = lis_script[0]
         prop_json = json.loads(prop_src)
         x = prop_json
         print(prop_json)
@@ -157,6 +169,8 @@ for i in url_lis:
         zip_code = '-'
         street_address = '-'    
 
+    
+
     print('Street Address : ',ent['streetAddress'])
     print('Zip Code : ',ent['postalCode'])
     
@@ -165,6 +179,7 @@ for i in url_lis:
     export_address.append(street_address)
     
     try:
+        agent_src = lis_script[1]
         y = json.loads(agent_src)
 
         agent_url = y['url']
@@ -205,6 +220,21 @@ for i in url_lis:
     driver.get(agent_url)
 
     try:
+        tab1 = driver.find_element(By.CSS_SELECTOR, "li[aria-controls='1-year-panel']")
+        tab1.click()
+    except: 
+        pass
+
+    try: 
+        broker_name = driver.find_element(By.CSS_SELECTOR,'div.office-name').text 
+
+    except:
+        broker_name = '-'
+    
+    print('Broker Name : ',broker_name)
+    broker_lis.append(broker_name)
+
+    try:
         close = [ g.text for g in driver.find_elements(By.CSS_SELECTOR,'.stat-item')][0]
     except:
         close = '-'
@@ -233,6 +263,18 @@ for i in url_lis:
     
     except:
         history = '-'
+
+    try:
+        buyer = history[history.index('Buyer Deals'):]
+    except:
+        buyer = '-'
+    buyer_lis.append(buyer)
+
+    try:
+        seller = history[history.index('Seller Deals'):].replace(buyer,'')
+    except:
+        seller = '-'
+    seller_lis.append(seller)
 
     #agent_name no use -> agent_name2
     try:
@@ -281,11 +323,11 @@ if __name__ == '__main__':
     df['Url'] = url_lis
     df['Image'] = export_image
     df['Price'] = export_price
-    df['Sell Date'] = export_sell_date
+    df['Sell Date'] = sold_lis 
     df['Address'] = export_address
     df['Zip Code'] = zipcode_lis 
     df['City'] = city_lis 
-    df['Agent'] = agency_name_lis
+    df['Broker Name'] = broker_lis
     df['Address'] = export_address 
     df['Seller Name'] =  export_membername
     df['Firstname'] = export_fname 
@@ -295,10 +337,12 @@ if __name__ == '__main__':
     df['About'] = export_about 
     df['Year Experience'] = year_lis
     df['Transaction History'] = export_trans
+    df['Buyer Deal'] = buyer_lis 
+    df['Seller Deal'] = seller_lis 
     df['Active Listing'] = export_active
     df['Total View'] = total_view_lis
     df['Close'] = export_close
 
-    df.to_excel('testloadsell2.xlsx')
+    df.to_excel('testloadsell3.xlsx')
 
     print('Finish ...')
