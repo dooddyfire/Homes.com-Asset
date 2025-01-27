@@ -216,8 +216,10 @@ for i in url_lis:
         email = '-'
         agent_name = '-'
 
-    
-    driver.get(agent_url)
+    try:
+        driver.get(agent_url)
+    except: 
+        print('Skip Agent URL Link Crash')
 
     try:
         tab1 = driver.find_element(By.CSS_SELECTOR, "li[aria-controls='1-year-panel']")
